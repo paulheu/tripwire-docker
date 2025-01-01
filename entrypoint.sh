@@ -19,24 +19,14 @@ DB_PASSWORD=${DB_PASSWORD-secret}
 ADMIN_EMAIL=${ADMIN_EMAIL-"webmaster@localhost"}
 SERVER_NAME=${SERVER_NAME-"tripwire.local"}
 
-DBRPWD=(echo -e `date` | md5sum | awk '{ print $1 }');
-DB_ROOTPASS=${DB_ROOTPASS-$DBRPWD}
-
 service mysql restart
-
 wait_for mysql 3306
 
 echo $(expect -c "
 set timeout 10
 spawn mysql_secure_installation
-expect \"Enter current password for root (enter for none):\"
+expect \"Press y|Y for Yes, any other key for No:\"
 send \"\r\"
-expect \"Set root password?\"
-send \"y\r\"
-expect \"New password:\"
-send \"$DB_ROOTPASS\r\"
-expect \"Re-enter new password:\"
-send \"$DB_ROOTPASS\r\"
 expect \"Remove anonymous users?\"
 send \"y\r\"
 expect \"Disallow root login remotely?\"
@@ -51,12 +41,10 @@ expect eof
 apt-get remove -y expect
 apt-get autoremove -y
 
-mysql -uroot -p$DB_ROOTPASS -e "create database tripwire;"
-mysql -uroot -p$DB_ROOTPASS -e "GRANT ALL ON tripwire.* to '$DB_USERNAME'@'localhost' IDENTIFIED BY '$DB_PASSWORD';"
-mysql -uroot -p$DB_ROOTPASS -e "GRANT SUPER ON *.* to '$DB_USERNAME'@'localhost' IDENTIFIED BY '$DB_PASSWORD';"
-
-mysql -u$DB_USERNAME -p$DB_PASSWORD tripwire < /var/www/tripwire/.docker/mysql/tripwire.sql
-
+mysql -uroot --skip-password -e "create database tripwire;"
+mysql -uroot --skip-password -e "CREATE USER '$DB_USERNAME'@'localhost' IDENTIFIED BY '$DB_PASSWORD';"
+mysql -uroot --skip-password -e "GRANT ALL ON tripwire.* to '$DB_USERNAME'@'localhost';"
+mysql -uroot --skip-password tripwire < /var/www/tripwire/.docker/mysql/tripwire.sql
 
 cp /var/www/tripwire/db.inc.example.php /var/www/tripwire/db.inc.php
 sed -i -e "s/host=localhost/host=$SERVER_NAME/g" /var/www/tripwire/db.inc.php
@@ -70,7 +58,7 @@ sed -i -e "s/localhost/$SERVER_NAME/g" /var/www/tripwire/config.php
 sed -i -e "s/adminEmail@example.com/$ADMIN_EMAIL/g" /var/www/tripwire/config.php
 sed -i -e "s/clientID/$SSO_CLIENT_ID/g" /var/www/tripwire/config.php
 sed -i -e "s/secret/$SSO_SECRET_KEY/g" /var/www/tripwire/config.php
-sed -i -e "s/http://localhost/index.php?mode=sso/$SSO_REDIRECT/g" /var/www/tripwire/config.php
+sed -i -e "s/http/https/g" /var/www/tripwire/config.php
 
 echo "ServerName $SERVER_NAME" >> /etc/apache2/apache2.conf
 unlink /etc/apache2/sites-enabled/000-default.conf

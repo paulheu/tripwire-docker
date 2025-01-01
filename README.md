@@ -1,5 +1,7 @@
 # Tripwire-docker
 
+modified to create a working docker container, removed unneeded checks and components no longer supported
+
 This builds a container for Tripwire (https://bitbucket.org/daimian/tripwire),
 the EVE Online wormhole mapper web app.
 
