@@ -1,4 +1,4 @@
-FROM debian:latest
+FROM ubuntu:latest
 LABEL MAINTAINER="Paul van der Heu<pvdh@outlook.com>"
 
 ENV DEBIAN_FRONTEND=noninteractive
