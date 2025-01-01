@@ -7,7 +7,6 @@ RUN apt-get -qq update
 RUN apt-get -qq install php php-cli php-mcrypt php-intl php-mysql php-curl php-gd php-mbstring curl git mysql-client mysql-server expect
 
 RUN git clone https://bitbucket.org/daimian/tripwire.git /var/www/tripwire
-RUN curl -L https://bitbucket.org/daimian/tripwire/downloads/tripwire.sql > /var/www/tripwire/.docker/mysql/tripwire.sql
 
 RUN chown -R www-data:www-data /var/www/tripwire
 
